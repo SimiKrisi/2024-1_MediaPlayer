@@ -1,0 +1,9 @@
+vpf-ben
+médialejátszó készítése
+-megállítás
+-lejátszás
+-folyamatvezérlő
+-load-dropp
+-egységes stílus
+-xml felülírása
+-xaml ben készüljön
