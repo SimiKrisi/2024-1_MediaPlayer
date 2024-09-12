@@ -1,0 +1,41 @@
+﻿<Window x:Class="Medialejatszo.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Medialejatszo"
+        mc:Ignorable="d"
+        Title="MediaPlayer" Height="450" Width="800"
+        MouseMove="Window_MouseMove">
+    <Grid>
+        <MediaElement Name="mediaPlayer" 
+                      HorizontalAlignment="Stretch" 
+                      VerticalAlignment="Stretch" 
+                      LoadedBehavior="Manual"
+                      MediaOpened="MediaPlayer_MediaOpened"/>
+        <Border Name="controlsPanel" VerticalAlignment="Top" Background="Gray" Opacity="0.7" Height="40">
+            <StackPanel VerticalAlignment="Top" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
+                <Button Content="Open" 
+                        Width="50" 
+                        Click="Open_Click"/>
+                <Button Name ="playPauseButton" 
+                        Content="Play" 
+                        Width="50" 
+                        Click="PlayPause_Click"/>
+                <Slider Name="progressSlider" 
+                        Width="300"
+                        ValueChanged="ProgressSlider_ValueChanged"
+                        Minimum="0"
+                        Maximum="1"
+                        Thumb.DragStarted="ProgressSlider_DragStarted"
+                        Thumb.DragCompleted ="ProgressSlider_DragCompleted"/>
+                <Slider Name="volumeSlider" 
+                        Minimum="0" 
+                        Maximum="1" 
+                        Width="100" 
+                        ValueChanged="VolumeSlider_ValueChanged" 
+                        Value="0.9"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
