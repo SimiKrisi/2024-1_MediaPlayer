@@ -6,16 +6,23 @@
         xmlns:local="clr-namespace:Medialejatszo"
         mc:Ignorable="d"
         Title="MediaPlayer" Height="450" Width="800"
-        MouseMove="Window_MouseMove">
+        MouseMove="Window_MouseMove"
+        AllowDrop="True"
+        Drop="Window_Drop"
+        DragEnter="Window_DragEnter">
+
     <Grid>
         <MediaElement Name="mediaPlayer" 
                       HorizontalAlignment="Stretch" 
                       VerticalAlignment="Stretch" 
                       LoadedBehavior="Manual"
+                      UnloadedBehavior="Stop"
                       MediaOpened="MediaPlayer_MediaOpened"/>
-        <Border Name="controlsPanel" VerticalAlignment="Top" Background="Gray" Opacity="0.7" Height="40">
+
+        <Border Name="controlsPanel" VerticalAlignment="Top" Background="Gray" Opacity="0.7" Height="40" HorizontalAlignment="Stretch">
             <StackPanel VerticalAlignment="Top" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
-                <Button Content="Open" 
+                <Button Name="openButton"
+                        Content="Open" 
                         Width="50" 
                         Click="Open_Click"/>
                 <Button Name ="playPauseButton" 
@@ -28,14 +35,22 @@
                         Minimum="0"
                         Maximum="1"
                         Thumb.DragStarted="ProgressSlider_DragStarted"
-                        Thumb.DragCompleted ="ProgressSlider_DragCompleted"/>
+                        Thumb.DragCompleted ="ProgressSlider_DragCompleted"
+                        IsMoveToPointEnabled="True"/>
                 <Slider Name="volumeSlider" 
                         Minimum="0" 
                         Maximum="1" 
                         Width="100" 
                         ValueChanged="VolumeSlider_ValueChanged" 
-                        Value="0.9"/>
+                        Value="0.9"
+                        IsMoveToPointEnabled="True"/>
             </StackPanel>
         </Border>
+        <TextBlock x:Name="txtFileName" 
+                   HorizontalAlignment="Center" 
+                   VerticalAlignment="Center"
+                   Margin="0,0,0,10" 
+                   FontSize="16" 
+                   Text="Drag and Drop a media file here" />
     </Grid>
 </Window>

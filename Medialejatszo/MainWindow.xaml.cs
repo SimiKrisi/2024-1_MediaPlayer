@@ -27,6 +27,7 @@ namespace Medialejatszo
         private DispatcherTimer progressTimer; // timer for the progress bar
         private bool progressIsDragging = false;  // flag for the progress bar
 		private bool isPlaying = false; //Track playback state
+        
         public MainWindow()
 		{
 			InitializeComponent();
@@ -67,42 +68,55 @@ namespace Medialejatszo
 			mouseTimer.Stop();//restart the timer every time the mouse moves
 			mouseTimer.Start();
 		}
-
-        
 		private void MediaPlayer_MediaOpened(object sender, RoutedEventArgs e)
 		{
 			double videoWidth = mediaPlayer.NaturalVideoWidth;
 			double videoHeight = mediaPlayer.NaturalVideoHeight;
-			if (videoWidth > 0 && videoHeight > 0)
+            double maxHeight = SystemParameters.WorkArea.Height; // Get the available screen height (excluding taskbar)
+            double maxWidth = SystemParameters.WorkArea.Width;   // Get the available screen width
+
+            if (videoWidth > 0 && videoHeight > 0)//video
 			{
-				
-				this.Width = videoWidth;
-				this.Height = videoHeight;
+                progressSlider.Width = 300;
+                volumeSlider.Width = 100;
+                openButton.Width = 50;
+                playPauseButton.Width = 50;
+                this.Height = videoHeight > 450 ? (videoHeight > maxHeight ? maxHeight : videoHeight) : 450;
+                this.Width = videoWidth > 800 ? (videoWidth>maxWidth? maxWidth:videoWidth) : 800;
 			}
-			else
+			else//music
 			{
-				this.Width=300;
+				this.Width= 300;
 				this.Height = 400;
+				progressSlider.Width = 140;
+				volumeSlider.Width = 50;
+				openButton.Width = 35;
+				playPauseButton.Width = 35;
 			}
 			// set the progress slider's maximum to the media duration(in seconds)
 			progressSlider.Maximum = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
-		}
+		    
+        }
         private void PlayPause_Click(object sender, RoutedEventArgs e)
         {
-			if (isPlaying)
-			{
-				mediaPlayer.Pause();
-				playPauseButton.Content = "Play";
-			}
-			else
-			{
-				mediaPlayer.Play();
-                progressTimer.Start();
-				playPauseButton.Content = "Pause";
-            }
-			isPlaying = !isPlaying;
+            playpause();
         }
-
+        private void playpause()
+        {
+            if (mediaPlayer.Source == null) return; // No file loaded
+            if (isPlaying)
+            {
+                mediaPlayer.Pause();
+                playPauseButton.Content = "Play";
+            }
+            else
+            {
+                mediaPlayer.Play();
+                progressTimer.Start();
+                playPauseButton.Content = "Pause";
+            }
+            isPlaying = !isPlaying;
+        }
 		private void ProgressSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
 		{
 			// handle progress slider value change(seek functionality)
@@ -111,24 +125,21 @@ namespace Medialejatszo
 				mediaPlayer.Position = TimeSpan.FromSeconds(progressSlider.Value);
 			}
 		}
-        
         // Detect when the user starts dragging the progress slider
         private void ProgressSlider_DragStarted(object sender, System.Windows.Controls.Primitives.DragStartedEventArgs e)
         {
+            //stop the file
+            playpause();
             progressIsDragging = true;
         }
-
         // Detect when the user stops dragging the progress slider
         private void ProgressSlider_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
         {
             progressIsDragging = false;
             mediaPlayer.Position = TimeSpan.FromSeconds(progressSlider.Value);
-        }
-        private void Stop_Click(object sender, RoutedEventArgs e)
-        {
-            mediaPlayer.Stop();
-			progressTimer.Stop(); // stop updating the progress slider
-			progressSlider.Value = 1;//reset the slider
+            //play the file
+            playpause();
+
         }
         private void VolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
 		{
@@ -137,19 +148,64 @@ namespace Medialejatszo
         private void Open_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Media files (*.mp4;*.mp3;*.avi)|*.mp4;*.mp3;*.avi|All files (*.*)|*.*";
+            openFileDialog.Filter = "Media files (*.mp4;*.mp3;*.avi;*.wav;*.wma;*.aac)|*.mp4;*.mp3;*.avi;*.wav;*.wma;*.aac|All files (*.*)|*.*";
 
             if (openFileDialog.ShowDialog() == true)
             {
                 mediaPlayer.Source = new Uri(openFileDialog.FileName, UriKind.Absolute);
-				//progressSlider.Maximum = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
-                if (isPlaying)
-                {
-					mediaPlayer.Play();
-                }
+                mediaPlayer.Play();
+                progressTimer.Start();
+                playPauseButton.Content = "Pause";
+				isPlaying = true;
+                txtFileName.Text = "";
             }
 
 
+        }
+        // Handle the DragEnter event to change the cursor when dragging files
+        private void Window_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effects = DragDropEffects.Move;
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+            }
+        }
+        // Handle the Drop event to load the dropped file into the media player
+        private void Window_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+                if (files.Length > 0)
+                {
+                    string filePath = files[0];
+                    string fileExtension = System.IO.Path.GetExtension(filePath).ToLower();
+
+                    // Only accept specific audio formats
+                    if (fileExtension == ".mp3" || fileExtension == ".wav" || fileExtension == ".wma" || fileExtension == ".aac" || fileExtension == ".mp4" || fileExtension == ".avi")
+                    {
+                        mediaPlayer.Source = new Uri(filePath);
+                        mediaPlayer.Play();
+                        isPlaying = true;
+                        playPauseButton.Content = "Pause";
+                        //txtFileName.Text = System.IO.Path.GetFileName(filePath); // Display the file name
+                        txtFileName.Text = "";
+                        progressTimer.Start();
+
+
+
+                    }
+                    else
+                    {
+                        MessageBox.Show("Unsupported file format. Please drop an audio file (.mp3, .wav, .wma, .aac, .mp4, .avi).");
+                    }
+                }
+            }
         }
     }
 }
